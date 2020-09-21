@@ -1,0 +1,141 @@
+//*****************************************************************************
+//* Enkóder interfész modul.                                                  *
+//* Rendszerarchitektúrák labor, 2. EDK-s mérés.                              *
+//*****************************************************************************
+module encoder_user_logic(
+   //A PLB IPIF interfész portjai.
+   Bus2IP_Clk,                     //Órajel.
+   Bus2IP_Reset,                   //Reset jel.
+   Bus2IP_Data,                    //Írási adatbusz (IPIF -> IP).
+   Bus2IP_BE,                      //Bájt engedélyezõ jelek.
+   Bus2IP_RdCE,                    //Regiszter olvasás engedélyezõ jelek.
+   Bus2IP_WrCE,                    //Regiszter írás engedélyezõ jelek.
+   IP2Bus_Data,                    //Olvasási adatbusz (IP -> IPIF).
+   IP2Bus_RdAck,                   //Regiszter olvasás nyugtázó jel.
+   IP2Bus_WrAck,                   //Regiszter írás nyugtázó jel.
+   IP2Bus_Error,                   //Hibajelzés az IPIF felé.
+   
+   //Az enkóder interfész portjai.
+   encoder_a,                      //Az enkóder A jele.
+   encoder_b,                      //Az enkóder B jele.
+   irq                             //Megszakításkérõ kimenet.
+);
+
+//*****************************************************************************
+//* A PLB IPIF interfész paraméterei (EZEKET NE MÓDOSÍTSA!).                  *
+//*****************************************************************************
+parameter C_SLV_DWIDTH = 32;
+parameter C_NUM_REG    = 2;
+
+
+//*****************************************************************************
+//* A PLB IPIF interfész portjainak definiálása (EZEKET NE MÓDOSÍTSA!).       *
+//*****************************************************************************
+input  wire                        Bus2IP_Clk;
+input  wire                        Bus2IP_Reset;
+input  wire [0 : C_SLV_DWIDTH-1]   Bus2IP_Data;
+input  wire [0 : C_SLV_DWIDTH/8-1] Bus2IP_BE;
+input  wire [0 : C_NUM_REG-1]      Bus2IP_RdCE;
+input  wire [0 : C_NUM_REG-1]      Bus2IP_WrCE;
+output reg  [0 : C_SLV_DWIDTH-1]   IP2Bus_Data;
+output wire                        IP2Bus_RdAck;
+output wire                        IP2Bus_WrAck;
+output wire                        IP2Bus_Error;
+
+
+//*****************************************************************************
+//* Az enkóder interfész portjainak definiálása (EZEKET NE MÓDOSÍTSA!).       *
+//*****************************************************************************
+input  wire                        encoder_a;
+input  wire                        encoder_b;
+output wire                        irq;
+
+
+//*****************************************************************************
+//* Az írási adatbusz bitjeinek megfordítása.                                 *
+//* A továbbiakban a Bus2IP_Data jel helyett használja a wr_data jelet.       *
+//*****************************************************************************
+reg     [C_SLV_DWIDTH-1:0] wr_data;
+integer                    i;
+
+always @(*)
+   for (i = 0; i < C_SLV_DWIDTH; i = i + 1)
+      wr_data[i] <= Bus2IP_Data[C_SLV_DWIDTH-i-1];
+      
+
+//*****************************************************************************
+//* A nyugtázó- és hibajelek meghajtása.                                      *
+//*****************************************************************************
+assign IP2Bus_WrAck = |Bus2IP_RdCE;
+assign IP2Bus_RdAck = |Bus2IP_WrCE;
+assign IP2Bus_Error = 1'b0;
+
+
+//*****************************************************************************
+//* Az enkóder jeleinek mintavételezése 1 kHz-el és az események dekódolása.  *
+//*****************************************************************************
+
+// Mintavételező órajel
+reg [15:0] clk_counter;
+
+always @ (posedge Bus2IP_Clk)
+if (clk_counter == 16'b0 || Bus2IP_Reset)
+    clk_counter <= 16'd49999;
+else
+    clk_counter <= clk_counter - 1;
+    
+wire sample_clk = (clk_counter == 16'b0);
+
+
+// Shift regiszterek
+reg [1:0] shr_a;
+reg [1:0] shr_b;
+
+always @ (posedge Bus2IP_Clk)
+if (sample_clk == 1'b1)
+begin
+    shr_a = {shr_a[0], encoder_a};
+    shr_b = {shr_b[0], encoder_b};
+end
+
+wire signal_counter_up = (shr_a == 2'b01 && shr_b == 2'b00 && sample_clk);
+wire signal_counter_down = (shr_a == 2'b00 && shr_b == 2'b01 && sample_clk);
+
+
+//*****************************************************************************
+//* Vezérlõ/státusz regiszter (BÁZIS+0x00).                                   *
+//* A megszakításkérõ jel elõállítása.                                        *
+//*****************************************************************************
+
+
+//*****************************************************************************
+//* Számláló (BÁZIS+0x04).                                                    *
+//*****************************************************************************
+reg [7:0] counter;
+
+always @ (posedge Bus2IP_Clk)
+if (Bus2IP_Reset)
+    counter <= 7'd0;
+// Ha épp olvasás történik
+else if (Bus2IP_RdCE[1] == 1) begin
+    if (signal_counter_up)
+        counter <= 7'd1;
+    else if (signal_counter_down)
+        counter <= counter - 1;
+    else
+        counter <= 7'd0;
+    end
+else begin
+    if (signal_counter_up)
+        counter <= counter + 1;
+    else if (signal_counter_down)
+        counter <= counter - 1;
+    end
+
+
+//*****************************************************************************
+//* Az olvasási adatbusz meghajtása.                                          *
+//*****************************************************************************
+
+
+endmodule
