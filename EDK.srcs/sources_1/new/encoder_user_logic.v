@@ -33,11 +33,11 @@ parameter C_NUM_REG    = 2;
 //*****************************************************************************
 input  wire                        Bus2IP_Clk;
 input  wire                        Bus2IP_Reset;
-input  wire [0 : C_SLV_DWIDTH-1]   Bus2IP_Data;
-input  wire [0 : C_SLV_DWIDTH/8-1] Bus2IP_BE;
-input  wire [0 : C_NUM_REG-1]      Bus2IP_RdCE;
-input  wire [0 : C_NUM_REG-1]      Bus2IP_WrCE;
-output reg  [0 : C_SLV_DWIDTH-1]   IP2Bus_Data;
+input  wire [C_SLV_DWIDTH-1 : 0]   Bus2IP_Data;
+input  wire [C_SLV_DWIDTH/8-1 : 0] Bus2IP_BE;
+input  wire [C_NUM_REG-1 : 0]      Bus2IP_RdCE;
+input  wire [C_NUM_REG-1 : 0]      Bus2IP_WrCE;
+output reg  [C_SLV_DWIDTH-1 : 0]   IP2Bus_Data;
 output wire                        IP2Bus_RdAck;
 output wire                        IP2Bus_WrAck;
 output wire                        IP2Bus_Error;
@@ -66,8 +66,8 @@ always @(*)
 //*****************************************************************************
 //* A nyugtázó- és hibajelek meghajtása.                                      *
 //*****************************************************************************
-assign IP2Bus_WrAck = |Bus2IP_RdCE;
-assign IP2Bus_RdAck = |Bus2IP_WrCE;
+assign IP2Bus_WrAck = |Bus2IP_WrCE;
+assign IP2Bus_RdAck = |Bus2IP_RdCE;
 assign IP2Bus_Error = 1'b0;
 
 
@@ -106,39 +106,62 @@ wire signal_counter_down = (edge_a == 2'b00 && edge_b == 2'b01 && sample_clk);
 
 
 //*****************************************************************************
-//* Vezérlõ/státusz regiszter (BÁZIS+0x00).                                   *
-//* A megszakításkérõ jel elõállítása.                                        *
-//*****************************************************************************
-
-
-//*****************************************************************************
 //* Számláló (BÁZIS+0x04).                                                    *
 //*****************************************************************************
-reg [7:0] counter;
+reg signed [7:0] counter;
 
 always @ (posedge Bus2IP_Clk)
 if (Bus2IP_Reset)
-    counter <= 7'd0;
+    counter <= 0;
 // Ha épp olvasás történik
 else if (Bus2IP_RdCE[1] == 1) begin
     if (signal_counter_up)
-        counter <= 7'd1;
+        counter <= 1;
     else if (signal_counter_down)
-        counter <= counter - 1;
+        counter <= 8'b1111_1111;
     else
-        counter <= 7'd0;
-    end
+        counter <= 0;
+end
 else begin
     if (signal_counter_up)
         counter <= counter + 1;
     else if (signal_counter_down)
         counter <= counter - 1;
-    end
+end
+
+
+//*****************************************************************************
+//* Vezérlõ/státusz regiszter (BÁZIS+0x00).                                   *
+//* A megszakításkérõ jel elõállítása.                                        *
+//*****************************************************************************
+reg ie;
+reg iflag;
+
+always @ (posedge Bus2IP_Clk)
+   if (Bus2IP_WrCE[0]) begin
+      ie <= wr_data[0];
+      iflag <= wr_data[1];
+   end
+
+always @ (posedge Bus2IP_Clk)
+    if (counter != 0)
+        iflag <= 1'b1;
+
+assign irq = ie && iflag;
 
 
 //*****************************************************************************
 //* Az olvasási adatbusz meghajtása.                                          *
 //*****************************************************************************
 
+always @ (posedge Bus2IP_Clk)
+if (Bus2IP_RdCE[0])
+    IP2Bus_Data <= {30'b0, iflag, ie};
+else if (Bus2IP_RdCE[1]) begin
+    IP2Bus_Data <= {24'b0, counter};
+    iflag <= 1'b0;
+end
+else
+    IP2Bus_Data <= 32'b0;
 
 endmodule

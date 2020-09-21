@@ -11,30 +11,39 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="5600286670fs"></ZoomStartTime>
-      <ZoomEndTime time="23720286671fs"></ZoomEndTime>
-      <Cursor1Time time="30001000000fs"></Cursor1Time>
+      <ZoomStartTime time="23101533100fs"></ZoomStartTime>
+      <ZoomEndTime time="23101605501fs"></ZoomEndTime>
+      <Cursor1Time time="23101530000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="213"></NameColumnWidth>
+      <NameColumnWidth column_width="209"></NameColumnWidth>
       <ValueColumnWidth column_width="66"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="6" />
-   <wvobject type="logic" fp_name="/tb_encoder/clk">
-      <obj_property name="ElementShortName">clk</obj_property>
-      <obj_property name="ObjectShortName">clk</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_encoder/rst">
-      <obj_property name="ElementShortName">rst</obj_property>
-      <obj_property name="ObjectShortName">rst</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_encoder/A">
-      <obj_property name="ElementShortName">A</obj_property>
-      <obj_property name="ObjectShortName">A</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_encoder/B">
-      <obj_property name="ElementShortName">B</obj_property>
-      <obj_property name="ObjectShortName">B</obj_property>
+   <WVObjectSize size="8" />
+   <wvobject type="group" fp_name="group53">
+      <obj_property name="label">Bus2IP</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/tb_encoder/Bus2IP_Clk">
+         <obj_property name="ElementShortName">Bus2IP_Clk</obj_property>
+         <obj_property name="ObjectShortName">Bus2IP_Clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_encoder/Bus2IP_Reset">
+         <obj_property name="ElementShortName">Bus2IP_Reset</obj_property>
+         <obj_property name="ObjectShortName">Bus2IP_Reset</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_encoder/Bus2IP_RdCE">
+         <obj_property name="ElementShortName">Bus2IP_RdCE[1:0]</obj_property>
+         <obj_property name="ObjectShortName">Bus2IP_RdCE[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_encoder/Bus2IP_WrCE">
+         <obj_property name="ElementShortName">Bus2IP_WrCE[1:0]</obj_property>
+         <obj_property name="ObjectShortName">Bus2IP_WrCE[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_encoder/Bus2IP_Data">
+         <obj_property name="ElementShortName">Bus2IP_Data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">Bus2IP_Data[31:0]</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject type="logic" fp_name="/tb_encoder/dut/sample_clk">
       <obj_property name="ElementShortName">sample_clk</obj_property>
@@ -43,5 +52,42 @@
    <wvobject type="array" fp_name="/tb_encoder/dut/counter">
       <obj_property name="ElementShortName">counter[7:0]</obj_property>
       <obj_property name="ObjectShortName">counter[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_encoder/dut/wr_data">
+      <obj_property name="ElementShortName">wr_data[31:0]</obj_property>
+      <obj_property name="ObjectShortName">wr_data[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_encoder/dut/ie">
+      <obj_property name="ElementShortName">ie</obj_property>
+      <obj_property name="ObjectShortName">ie</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_encoder/dut/iflag">
+      <obj_property name="ElementShortName">iflag</obj_property>
+      <obj_property name="ObjectShortName">iflag</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_encoder/irq">
+      <obj_property name="ElementShortName">irq</obj_property>
+      <obj_property name="ObjectShortName">irq</obj_property>
+   </wvobject>
+   <wvobject type="group" fp_name="group52">
+      <obj_property name="label">IP2Bus</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/tb_encoder/dut/IP2Bus_Data">
+         <obj_property name="ElementShortName">IP2Bus_Data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">IP2Bus_Data[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_encoder/IP2Bus_RdAck">
+         <obj_property name="ElementShortName">IP2Bus_RdAck</obj_property>
+         <obj_property name="ObjectShortName">IP2Bus_RdAck</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_encoder/IP2Bus_WrAck">
+         <obj_property name="ElementShortName">IP2Bus_WrAck</obj_property>
+         <obj_property name="ObjectShortName">IP2Bus_WrAck</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/tb_encoder/dut/IP2Bus_Error">
+         <obj_property name="ElementShortName">IP2Bus_Error</obj_property>
+         <obj_property name="ObjectShortName">IP2Bus_Error</obj_property>
+      </wvobject>
    </wvobject>
 </wave_config>

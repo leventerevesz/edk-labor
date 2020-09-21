@@ -2,53 +2,91 @@
 
 module tb_encoder;
 
-reg clk;
-reg rst;
-reg A, B;
+reg         Bus2IP_Clk;
+reg         Bus2IP_Reset;
+
+reg  [31:0] Bus2IP_Data;
+reg  [3:0]  Bus2IP_BE;
+reg  [1:0]  Bus2IP_RdCE;
+reg  [1:0]  Bus2IP_WrCE;
+wire [31:0] IP2Bus_Data;
+wire        IP2Bus_RdAck;
+wire        IP2Bus_WrAck;
+wire        IP2Bus_Error;
+
+reg         encoder_a;
+reg         encoder_b;
+wire        irq;
 
 encoder_user_logic dut(
-   .Bus2IP_Clk (clk),                     //Órajel.
-   .Bus2IP_Reset (rst),                   //Reset jel.
-   .Bus2IP_Data (),                    //Írási adatbusz (IPIF -> IP).
-   .Bus2IP_BE (),                      //Bájt engedélyezõ jelek.
-   .Bus2IP_RdCE (),                    //Regiszter olvasás engedélyezõ jelek.
-   .Bus2IP_WrCE (),                    //Regiszter írás engedélyezõ jelek.
-   .IP2Bus_Data (),                    //Olvasási adatbusz (IP -> IPIF).
-   .IP2Bus_RdAck (),                   //Regiszter olvasás nyugtázó jel.
-   .IP2Bus_WrAck (),                   //Regiszter írás nyugtázó jel.
-   .IP2Bus_Error (),                   //Hibajelzés az IPIF felé.
+   //A PLB IPIF interfész portjai.
+   Bus2IP_Clk,                     //Órajel.
+   Bus2IP_Reset,                   //Reset jel.
+   Bus2IP_Data,                    //Írási adatbusz (IPIF -> IP).
+   Bus2IP_BE,                      //Bájt engedélyezõ jelek.
+   Bus2IP_RdCE,                    //Regiszter olvasás engedélyezõ jelek.
+   Bus2IP_WrCE,                    //Regiszter írás engedélyezõ jelek.
+   IP2Bus_Data,                    //Olvasási adatbusz (IP -> IPIF).
+   IP2Bus_RdAck,                   //Regiszter olvasás nyugtázó jel.
+   IP2Bus_WrAck,                   //Regiszter írás nyugtázó jel.
+   IP2Bus_Error,                   //Hibajelzés az IPIF felé.
    
    //Az enkóder interfész portjai.
-   .encoder_a (A),                      //Az enkóder A jele.
-   .encoder_b (B),                      //Az enkóder B jele.
-   .irq ()
+   encoder_a,                      //Az enkóder A jele.
+   encoder_b,                      //Az enkóder B jele.
+   irq                             //Megszakításkérõ kimenet.
 );
 
 task ROTATE_CLOCKWISE;
 begin
-A <= 1;
-B <= 0;
-#1_500_000 A <= 0;
+encoder_a <= 1;
+encoder_b <= 0;
+#1_500_000 encoder_a <= 0;
 #1_500_000;
 end
 endtask
 
 task ROTATE_COUNTERCLOCKWISE;
 begin
-A <= 0;
-B <= 1;
-#1_500_000 B <= 0;
+encoder_a <= 0;
+encoder_b <= 1;
+#1_500_000 encoder_b <= 0;
 #1_500_000;
 end
 endtask
 
-initial begin
-clk <= 0;
-rst <= 1;
-A <= 0;
-B <= 0;
+task BUS_WRITE;
+input [31:0] Data;
+input integer addr;
+begin
+@ (posedge Bus2IP_Clk);
+Bus2IP_Data <= Data;
+Bus2IP_WrCE <= (addr == 0) ? 2'b01 : 2'b10;
+@ (posedge Bus2IP_Clk);
+Bus2IP_Data <= 32'hXXXXXXXX;
+Bus2IP_WrCE <= 2'b00;
+end
+endtask
 
-#500 rst <= 0;
+task BUS_READ_COUNTER;
+begin
+@ (posedge Bus2IP_Clk);
+Bus2IP_RdCE <= 2'b10;
+@ (posedge Bus2IP_Clk);
+Bus2IP_RdCE <= 2'b00;
+end
+endtask
+
+initial begin
+Bus2IP_Clk <= 0;
+Bus2IP_Reset <= 1;
+encoder_a <= 0;
+encoder_b <= 0;
+Bus2IP_RdCE <= 0;
+
+#500 Bus2IP_Reset <= 0;
+
+#1000 BUS_WRITE({2'b10, 30'h0}, 0);
 
 #4_000_000;
 ROTATE_CLOCKWISE;
@@ -57,9 +95,11 @@ ROTATE_CLOCKWISE;
 ROTATE_COUNTERCLOCKWISE;
 #400_000 ROTATE_COUNTERCLOCKWISE;
 ROTATE_CLOCKWISE;
+
+BUS_READ_COUNTER;
 end
 
-always # 10 clk <= ~clk;
+always # 10 Bus2IP_Clk <= ~Bus2IP_Clk;
 
 
 
