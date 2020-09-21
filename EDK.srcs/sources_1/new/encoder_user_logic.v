@@ -94,8 +94,8 @@ reg shr_b;
 always @ (posedge Bus2IP_Clk)
 if (sample_clk == 1'b1)
 begin
-    shr_a = encoder_a;
-    shr_b = encoder_b;
+    shr_a <= encoder_a;
+    shr_b <= encoder_b;
 end
 
 wire [1:0] edge_a = {shr_a, encoder_a};
