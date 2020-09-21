@@ -4,6 +4,7 @@ module tb_encoder;
 
 reg clk;
 reg rst;
+reg A, B;
 
 encoder_user_logic dut(
    .Bus2IP_Clk (clk),                     //Órajel.
@@ -18,18 +19,48 @@ encoder_user_logic dut(
    .IP2Bus_Error (),                   //Hibajelzés az IPIF felé.
    
    //Az enkóder interfész portjai.
-   .encoder_a (1'b0),                      //Az enkóder A jele.
-   .encoder_b (1'b0),                      //Az enkóder B jele.
+   .encoder_a (A),                      //Az enkóder A jele.
+   .encoder_b (B),                      //Az enkóder B jele.
    .irq ()
 );
+
+task ROTATE_CLOCKWISE;
+begin
+A <= 1;
+B <= 0;
+#1_500_000 A <= 0;
+#1_500_000;
+end
+endtask
+
+task ROTATE_COUNTERCLOCKWISE;
+begin
+A <= 0;
+B <= 1;
+#1_500_000 B <= 0;
+#1_500_000;
+end
+endtask
 
 initial begin
 clk <= 0;
 rst <= 1;
+A <= 0;
+B <= 0;
 
 #500 rst <= 0;
+
+#4_000_000;
+ROTATE_CLOCKWISE;
+ROTATE_CLOCKWISE;
+#700_000 ROTATE_CLOCKWISE;
+ROTATE_COUNTERCLOCKWISE;
+#400_000 ROTATE_COUNTERCLOCKWISE;
+ROTATE_CLOCKWISE;
 end
 
 always # 10 clk <= ~clk;
+
+
 
 endmodule

@@ -88,18 +88,21 @@ wire sample_clk = (clk_counter == 16'b0);
 
 
 // Shift regiszterek
-reg [1:0] shr_a;
-reg [1:0] shr_b;
+reg shr_a;
+reg shr_b;
 
 always @ (posedge Bus2IP_Clk)
 if (sample_clk == 1'b1)
 begin
-    shr_a = {shr_a[0], encoder_a};
-    shr_b = {shr_b[0], encoder_b};
+    shr_a = encoder_a;
+    shr_b = encoder_b;
 end
 
-wire signal_counter_up = (shr_a == 2'b01 && shr_b == 2'b00 && sample_clk);
-wire signal_counter_down = (shr_a == 2'b00 && shr_b == 2'b01 && sample_clk);
+wire [1:0] edge_a = {shr_a, encoder_a};
+wire [1:0] edge_b = {shr_b, encoder_b};
+
+wire signal_counter_up = (edge_a == 1'b01 && edge_b == 2'b00 && sample_clk);
+wire signal_counter_down = (edge_a == 2'b00 && edge_b == 2'b01 && sample_clk);
 
 
 //*****************************************************************************
