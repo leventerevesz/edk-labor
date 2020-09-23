@@ -33,11 +33,11 @@ parameter C_NUM_REG    = 2;
 //*****************************************************************************
 input  wire                        Bus2IP_Clk;
 input  wire                        Bus2IP_Reset;
-input  wire [C_SLV_DWIDTH-1 : 0]   Bus2IP_Data;
-input  wire [C_SLV_DWIDTH/8-1 : 0] Bus2IP_BE;
-input  wire [C_NUM_REG-1 : 0]      Bus2IP_RdCE;
-input  wire [C_NUM_REG-1 : 0]      Bus2IP_WrCE;
-output reg  [C_SLV_DWIDTH-1 : 0]   IP2Bus_Data;
+input  wire [0 : C_SLV_DWIDTH-1]   Bus2IP_Data;
+input  wire [0 : C_SLV_DWIDTH/8-1] Bus2IP_BE;
+input  wire [0 : C_NUM_REG-1]      Bus2IP_RdCE;
+input  wire [0 : C_NUM_REG-1]      Bus2IP_WrCE;
+output reg  [0 : C_SLV_DWIDTH-1]   IP2Bus_Data;
 output wire                        IP2Bus_RdAck;
 output wire                        IP2Bus_WrAck;
 output wire                        IP2Bus_Error;
@@ -56,12 +56,14 @@ output wire                        irq;
 //* A továbbiakban a Bus2IP_Data jel helyett használja a wr_data jelet.       *
 //*****************************************************************************
 reg     [C_SLV_DWIDTH-1:0] wr_data;
+reg     [C_SLV_DWIDTH-1:0] rd_data;
 integer                    i;
 
 always @(*)
-   for (i = 0; i < C_SLV_DWIDTH; i = i + 1)
+   for (i = 0; i < C_SLV_DWIDTH; i = i + 1) begin
       wr_data[i] <= Bus2IP_Data[C_SLV_DWIDTH-i-1];
-      
+	   IP2Bus_Data[i] <= rd_data[C_SLV_DWIDTH-i-1];
+   end
 
 //*****************************************************************************
 //* A nyugtázó- és hibajelek meghajtása.                                      *
@@ -135,18 +137,14 @@ end
 //* A megszakításkérõ jel elõállítása.                                        *
 //*****************************************************************************
 reg ie;
-reg iflag;
 
 always @ (posedge Bus2IP_Clk)
-   if (Bus2IP_WrCE[0]) begin
-      ie <= wr_data[0];
-      iflag <= wr_data[1];
-   end
+   if (Bus2IP_Reset)
+       ie <= 1'b0;
+   else if (Bus2IP_WrCE[0])
+       ie <= wr_data[0];
 
-always @ (posedge Bus2IP_Clk)
-    if (counter != 0)
-        iflag <= 1'b1;
-
+wire iflag = (8'd0 == counter) ? 1'b0 : 1'b1;
 assign irq = ie && iflag;
 
 
@@ -154,14 +152,12 @@ assign irq = ie && iflag;
 //* Az olvasási adatbusz meghajtása.                                          *
 //*****************************************************************************
 
-always @ (posedge Bus2IP_Clk)
+always @ (*)
 if (Bus2IP_RdCE[0])
-    IP2Bus_Data <= {30'b0, iflag, ie};
-else if (Bus2IP_RdCE[1]) begin
-    IP2Bus_Data <= {24'b0, counter};
-    iflag <= 1'b0;
-end
+    rd_data <= {30'b0, iflag, ie};
+else if (Bus2IP_RdCE[1])
+    rd_data <= {{24{counter[7]}}, counter};
 else
-    IP2Bus_Data <= 32'b0;
+    rd_data <= 32'b0;
 
 endmodule

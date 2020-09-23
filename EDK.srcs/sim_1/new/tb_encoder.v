@@ -2,21 +2,21 @@
 
 module tb_encoder;
 
-reg         Bus2IP_Clk;
-reg         Bus2IP_Reset;
+reg             Bus2IP_Clk;
+reg             Bus2IP_Reset;
 
-reg  [31:0] Bus2IP_Data;
-reg  [3:0]  Bus2IP_BE;
-reg  [1:0]  Bus2IP_RdCE;
-reg  [1:0]  Bus2IP_WrCE;
-wire [31:0] IP2Bus_Data;
-wire        IP2Bus_RdAck;
-wire        IP2Bus_WrAck;
-wire        IP2Bus_Error;
+reg  [0 : 31]   Bus2IP_Data;
+reg  [0 :  3]   Bus2IP_BE;
+reg  [0 :  1]   Bus2IP_RdCE;
+reg  [0 :  1]   Bus2IP_WrCE;
+wire [0 : 31]   IP2Bus_Data;
+wire            IP2Bus_RdAck;
+wire            IP2Bus_WrAck;
+wire            IP2Bus_Error;
 
-reg         encoder_a;
-reg         encoder_b;
-wire        irq;
+reg             encoder_a;
+reg             encoder_b;
+wire            irq;
 
 encoder_user_logic dut(
    //A PLB IPIF interfész portjai.
@@ -56,14 +56,14 @@ end
 endtask
 
 task BUS_WRITE;
-input [31:0] Data;
-input integer addr;
+input [0:31] Data;
+input integer register;
 begin
 @ (posedge Bus2IP_Clk);
 Bus2IP_Data <= Data;
-Bus2IP_WrCE <= (addr == 0) ? 2'b01 : 2'b10;
+Bus2IP_WrCE <= (register == 0) ? 2'b10 : 2'b01;
 @ (posedge Bus2IP_Clk);
-Bus2IP_Data <= 32'hXXXXXXXX;
+Bus2IP_Data <= 32'hZZZZZZZZ;
 Bus2IP_WrCE <= 2'b00;
 end
 endtask
@@ -71,7 +71,7 @@ endtask
 task BUS_READ_COUNTER;
 begin
 @ (posedge Bus2IP_Clk);
-Bus2IP_RdCE <= 2'b10;
+Bus2IP_RdCE <= 2'b01;
 @ (posedge Bus2IP_Clk);
 Bus2IP_RdCE <= 2'b00;
 end
@@ -86,7 +86,7 @@ Bus2IP_RdCE <= 0;
 
 #500 Bus2IP_Reset <= 0;
 
-#1000 BUS_WRITE({2'b10, 30'h0}, 0);
+#1000 BUS_WRITE({30'b0, 2'b01}, 0);
 
 #4_000_000;
 ROTATE_CLOCKWISE;

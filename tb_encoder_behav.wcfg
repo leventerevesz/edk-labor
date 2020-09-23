@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="23101533100fs"></ZoomStartTime>
-      <ZoomEndTime time="23101605501fs"></ZoomEndTime>
-      <Cursor1Time time="23101530000fs"></Cursor1Time>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="36400000001fs"></ZoomEndTime>
+      <Cursor1Time time="30000000000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="209"></NameColumnWidth>
+      <NameColumnWidth column_width="205"></NameColumnWidth>
       <ValueColumnWidth column_width="66"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="8" />
+   <WVObjectSize size="10" />
    <wvobject type="group" fp_name="group53">
       <obj_property name="label">Bus2IP</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -44,6 +44,14 @@
          <obj_property name="ElementShortName">Bus2IP_Data[31:0]</obj_property>
          <obj_property name="ObjectShortName">Bus2IP_Data[31:0]</obj_property>
       </wvobject>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_encoder/encoder_a">
+      <obj_property name="ElementShortName">encoder_a</obj_property>
+      <obj_property name="ObjectShortName">encoder_a</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_encoder/encoder_b">
+      <obj_property name="ElementShortName">encoder_b</obj_property>
+      <obj_property name="ObjectShortName">encoder_b</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/tb_encoder/dut/sample_clk">
       <obj_property name="ElementShortName">sample_clk</obj_property>
