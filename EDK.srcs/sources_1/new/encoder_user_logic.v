@@ -33,11 +33,11 @@ parameter C_NUM_REG    = 2;
 //*****************************************************************************
 input  wire                        Bus2IP_Clk;
 input  wire                        Bus2IP_Reset;
-input  wire [C_SLV_DWIDTH-1 : 0]   Bus2IP_Data;
-input  wire [C_SLV_DWIDTH/8-1 : 0] Bus2IP_BE;
-input  wire [C_NUM_REG-1 : 0]      Bus2IP_RdCE;
-input  wire [C_NUM_REG-1 : 0]      Bus2IP_WrCE;
-output reg  [C_SLV_DWIDTH-1 : 0]   IP2Bus_Data;
+input  wire [0 : C_SLV_DWIDTH-1]   Bus2IP_Data;
+input  wire [0 : C_SLV_DWIDTH/8-1] Bus2IP_BE;
+input  wire [0 : C_NUM_REG-1]      Bus2IP_RdCE;
+input  wire [0 : C_NUM_REG-1]      Bus2IP_WrCE;
+output reg  [0 : C_SLV_DWIDTH-1]   IP2Bus_Data;
 output wire                        IP2Bus_RdAck;
 output wire                        IP2Bus_WrAck;
 output wire                        IP2Bus_Error;
@@ -141,9 +141,8 @@ reg ie;
 always @ (posedge Bus2IP_Clk)
    if (Bus2IP_Reset)
        ie <= 1'b0;
-   else if (Bus2IP_WrCE[0]) begin
+   else if (Bus2IP_WrCE[0])
        ie <= wr_data[0];
-   end
 
 wire iflag = (8'd0 == counter) ? 1'b0 : 1'b1;
 assign irq = ie && iflag;
